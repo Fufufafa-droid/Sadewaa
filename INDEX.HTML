@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valdy | Programmer & Basketball Enthusiast</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#FF5722',
+                            orangeGlow: '#FF7043',
+                            blue: '#00E5FF',
+                            blueGlow: '#18FFFF',
+                            dark: '#0B0F19',
+                            card: 'rgba(17, 24, 39, 0.7)',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-15px) rotate(3deg)' }
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.6', filter: 'drop-shadow(0 0 15px rgba(255, 87, 34, 0.6))' },
+                            '50%': { opacity: '1', filter: 'drop-shadow(0 0 25px rgba(0, 229, 255, 0.9))' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js Library for 3D graphics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0B0F19;
+            color: #F3F4F6;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism custom styling */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 229, 255, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px -10px rgba(0, 229, 255, 0.25);
+        }
+
+        .glass-card-orange:hover {
+            border-color: rgba(255, 87, 34, 0.5);
+            box-shadow: 0 12px 30px -10px rgba(255, 87, 34, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0F19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00E5FF;
+        }
+
+        /* Gradient Text Helper */
+        .text-gradient-primary {
+            background: linear-gradient(135deg, #00E5FF 0%, #FF5722 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-orange {
+            background: linear-gradient(135deg, #FF7043 0%, #FF5722 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-blue {
+            background: linear-gradient(135deg, #18FFFF 0%, #00E5FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Canvas Overlay */
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none; /* Let clicks pass through to UI */
+        }
+
+        .interactive-canvas-area {
+            pointer-events: auto !important;
+        }
+    </style>
+</head>
+<body class="selection:bg-brand-blue selection:text-black">
+
+    <!-- 3D Canvas Background -->
+    <canvas id="three-canvas"></canvas>
+
+    <!-- SPLASH SCREEN / INTRO ANIMATION -->
+    <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 transition-opacity duration-700">
+        <div class="relative flex flex-col items-center max-w-sm px-6 text-center">
+            <!-- Animated 3D Ball & Tech Ring Indicator -->
+            <div class="relative w-28 h-28 mb-8 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border-2 border-dashed border-brand-blue animate-spin" style="animation-duration: 8s;"></div>
+                <div class="absolute inset-2 rounded-full border-2 border-brand-orange animate-ping opacity-25"></div>
+                <div class="w-20 h-20 bg-gradient-to-tr from-brand-orange to-brand-blue rounded-full flex items-center justify-center shadow-lg shadow-brand-blue/30 text-3xl">
+                    <i class="fa-solid fa-code text-white"></i>
+                </div>
+            </div>
+
+            <h1 class="text-3xl font-extrabold tracking-wider text-white mb-2">
+                VALDY <span class="text-brand-orange">.DEV</span>
+            </h1>
+            <p class="text-xs font-mono text-cyan-400 mb-8 tracking-widest uppercase">Coding • Basketball • Dreamer</p>
+
+            <!-- Loading Bar -->
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-6">
+                <div id="loading-bar" class="bg-gradient-to-r from-brand-blue to-brand-orange h-full w-0 transition-all duration-300"></div>
+            </div>
+
+            <!-- Start Button -->
+            <button id="enter-btn" onclick="enterSite()" class="opacity-0 translate-y-4 transition-all duration-500 px-8 py-3 rounded-full bg-gradient-to-r from-brand-blue via-cyan-500 to-brand-orange text-slate-950 font-extrabold hover:shadow-lg hover:shadow-cyan-500/50 hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-2">
+                <span>JELAJAHI PORTFOLIO</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="app-content" class="relative z-10 opacity-0 transition-opacity duration-1000 min-h-screen flex flex-col">
+
+        <!-- NAVIGATION BAR -->
+        <header class="sticky top-0 z-40 w-full glass-panel border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+                <!-- Logo -->
+                <a href="#hero" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue to-brand-orange flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                        <span class="font-black text-slate-950 text-xl">V</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-extrabold text-lg text-white tracking-tight group-hover:text-cyan-400 transition-colors">VALDY</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-widest -mt-1">PORTFOLIO</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Nav Navigation -->
+                <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+                    <a href="#hero" class="text-slate-300 hover:text-brand-blue transition-colors">Beranda</a>
+                    <a href="#about" class="text-slate-300 hover:text-brand-blue transition-colors">Tentang Saya</a>
+                    <a href="#skills" class="text-slate-300 hover:text-brand-blue transition-colors">Keahlian</a>
+                    <a href="#blog" class="text-slate-300 hover:text-brand-blue transition-colors">Jurnal / Blog</a>
+                    <a href="#contact" class="text-slate-300 hover:text-brand-blue transition-colors">Kontak</a>
+                </nav>
+
+                <!-- Quick Action Button & Mobile Menu Toggle -->
+                <div class="flex items-center gap-4">
+                    <a href="#contact" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-brand-orange to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity shadow-md shadow-brand-orange/20">
+                        <i class="fa-solid fa-paper-plane"></i> Hubungi
+                    </a>
+
+                    <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2.5 rounded-xl bg-slate-800/80 text-slate-200 hover:text-white border border-slate-700">
+                        <i id="menu-icon" class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Nav Dropdown -->
+            <div id="mobile-menu" class="hidden md:hidden border-t border-slate-800 bg-slate-950/95 backdrop-blur-xl px-6 py-6 space-y-4">
+                <a href="#hero" onclick="toggleMobileMenu()" class="block text-slate-200 font-semibold py-2 hover:text-brand-blue">Beranda</a>
+                <a href="#about" onclick="toggleMobileMenu()" class="block text-slate-200 font-semibold py-2 hover:text-brand-blue">Tentang Saya</a>
+                <a href="#skills" onclick="toggleMobileMenu()" class="block text-slate-200 font-semibold py-2 hover:text-brand-blue">Keahlian</a>
+                <a href="#blog" onclick="toggleMobileMenu()" class="block text-slate-200 font-semibold py-2 hover:text-brand-blue">Jurnal / Blog</a>
+                <a href="#contact" onclick="toggleMobileMenu()" class="block text-slate-200 font-semibold py-2 hover:text-brand-blue">Kontak</a>
+            </div>
+        </header>
+
+        <!-- HERO SECTION -->
+        <section id="hero" class="relative min-h-[calc(100vh-80px)] flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto text-center space-y-8 relative z-10">
+                
+                <!-- Status Badge -->
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-brand-blue/30 text-xs font-mono text-cyan-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Future Full-Stack Programmer & Athlete</span>
+                </div>
+
+                <!-- Main Heading -->
+                <h1 class="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none text-white">
+                    Halo, Saya <span class="text-gradient-primary">Valdy</span>
+                </h1>
+
+                <!-- Subtitle / Passion Statement -->
+                <p class="max-w-2xl mx-auto text-base sm:text-xl text-slate-300 leading-relaxed font-light">
+                    Mengkombinasikan logika <span class="text-cyan-400 font-semibold">Coding</span> dengan semangat ketangkasan <span class="text-brand-orange font-semibold">Bola Basket</span> untuk menciptakan karya luar biasa.
+                </p>
+
+                <!-- Interactive Call to Action Buttons -->
+                <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+                    <a href="#about" class="px-8 py-4 rounded-xl bg-gradient-to-r from-brand-blue to-cyan-500 text-slate-950 font-extrabold text-sm tracking-wide shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
+                        <i class="fa-solid fa-user"></i> Pelajari Perjalanan Saya
+                    </a>
+                    <a href="#blog" class="px-8 py-4 rounded-xl glass-card text-slate-200 font-extrabold text-sm tracking-wide hover:bg-slate-800/80 hover:text-white transition-all flex items-center gap-3 border border-slate-700">
+                        <i class="fa-solid fa-book-open"></i> Baca Blog
+                    </a>
+                </div>
+
+                <!-- 3D Hint / Instruction Banner -->
+                <div class="pt-12 flex items-center justify-center gap-2 text-xs font-mono text-slate-500">
+                    <i class="fa-solid fa-hand-pointer text-brand-orange animate-bounce"></i>
+                    <span>Geser layar / gerakkan mouse untuk berinteraksi dengan objek 3D</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT ME SECTION -->
+        <section id="about" class="py-20 px-4 sm:px-6 lg:px-8 relative">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16 space-y-2">
+                    <h2 class="text-xs font-mono text-brand-blue uppercase tracking-widest">// IMPULSE & PASSION</h2>
+                    <h3 class="text-3xl sm:text-5xl font-extrabold text-white">Tentang Diri Saya</h3>
+                    <p class="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">Dua impian besar yang membentuk disiplin, kerja keras, dan visi masa depan saya.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 items-stretch">
+                    
+                    <!-- Card 1: Coding Story -->
+                    <div class="glass-card p-8 rounded-2xl relative overflow-hidden flex flex-col justify-between group">
+                        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-blue/10 rounded-full blur-3xl group-hover:bg-brand-blue/20 transition-all"></div>
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-slate-800/80 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-2xl mb-6 shadow-inner">
+                                <i class="fa-solid fa-code"></i>
+                            </div>
+                            <span class="text-xs font-mono text-cyan-400 uppercase tracking-wider">Cita-Cita Utama</span>
+                            <h4 class="text-2xl font-bold text-white mt-1 mb-4">Menjadi Programmer Profesional</h4>
+                            <p class="text-slate-300 leading-relaxed text-sm sm:text-base">
+                                Saya mulai tertarik dengan dunia coding karena kagum dengan bagaimana baris kode dapat memecahkan masalah nyata dan menciptakan aplikasi interaktif. Impian saya adalah menjadi seorang <strong class="text-cyan-300">Software Developer / Programmer</strong> mahir yang bisa membangun solusi teknologi bermanfaat bagi banyak orang.
+                            </p>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
+                            <span><i class="fa-solid fa-terminal text-cyan-400 mr-2"></i>Problem Solver</span>
+                            <span class="text-cyan-400 font-bold">100% Dedicated</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Basketball Story -->
+                    <div class="glass-card glass-card-orange p-8 rounded-2xl relative overflow-hidden flex flex-col justify-between group">
+                        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-orange/10 rounded-full blur-3xl group-hover:bg-brand-orange/20 transition-all"></div>
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-slate-800/80 border border-orange-500/30 flex items-center justify-center text-brand-orange text-2xl mb-6 shadow-inner">
+                                <i class="fa-solid fa-basketball"></i>
+                            </div>
+                            <span class="text-xs font-mono text-brand-orange uppercase tracking-wider">Ambisi Olahraga</span>
+                            <h4 class="text-2xl font-bold text-white mt-1 mb-4">Membawa Sekolah Menjadi Juara</h4>
+                            <p class="text-slate-300 leading-relaxed text-sm sm:text-base">
+                                Bola basket mengajarkan saya arti kepemimpinan, daya tahan, dan kerjasama tim. Saya memiliki impian dan tekad kuat untuk membawa tim basket sekolah saya menjuarai turnamen dan mengangkat trofi **Juara Basket**, membanggakan nama sekolah di setiap pertandingan.
+                            </p>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
+                            <span><i class="fa-solid fa-trophy text-brand-orange mr-2"></i>Team Champion</span>
+                            <span class="text-brand-orange font-bold">High Spirit</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Animated Stats Counter -->
+                <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="glass-card p-6 rounded-xl text-center">
+                        <div class="text-3xl font-black text-cyan-400">100%</div>
+                        <div class="text-xs text-slate-400 font-mono mt-1">Komitmen Coding</div>
+                    </div>
+                    <div class="glass-card p-6 rounded-xl text-center">
+                        <div class="text-3xl font-black text-brand-orange">#1</div>
+                        <div class="text-xs text-slate-400 font-mono mt-1">Target Juara Basket</div>
+                    </div>
+                    <div class="glass-card p-6 rounded-xl text-center">
+                        <div class="text-3xl font-black text-emerald-400">24/7</div>
+                        <div class="text-xs text-slate-400 font-mono mt-1">Semangat Belajar</div>
+                    </div>
+                    <div class="glass-card p-6 rounded-xl text-center">
+                        <div class="text-3xl font-black text-amber-400">∞</div>
+                        <div class="text-xs text-slate-400 font-mono mt-1">Potensi Diri</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SKILLS & FOCUS SECTION -->
+        <section id="skills" class="py-20 px-4 sm:px-6 lg:px-8 relative bg-slate-900/40">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16 space-y-2">
+                    <h2 class="text-xs font-mono text-brand-orange uppercase tracking-widest">// ABILITIES & MINDSET</h2>
+                    <h3 class="text-3xl sm:text-5xl font-extrabold text-white">Fokus & Keahlian</h3>
+                    <p class="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">Perpaduan antara logika pemrograman dan strategi olahraga.</p>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Skill 1 -->
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-laptop-code"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Web Development</h4>
+                                <span class="text-xs font-mono text-slate-400">HTML, CSS, JS, UI/UX</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                            Mempelajari fondasi pengembangan web interaktif modern dengan fokus pada tampilan yang responsif dan menarik.
+                        </p>
+                        <div class="w-full bg-slate-800 rounded-full h-2">
+                            <div class="bg-cyan-400 h-2 rounded-full" style="width: 80%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Skill 2 -->
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-gears"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Algoritma & Logika</h4>
+                                <span class="text-xs font-mono text-slate-400">Problem Solving</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                            Melatih pemikiran analitis untuk menyelesaikan tantangan koding secara berurutan dan efisien.
+                        </p>
+                        <div class="w-full bg-slate-800 rounded-full h-2">
+                            <div class="bg-amber-400 h-2 rounded-full" style="width: 75%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Skill 3 -->
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-basketball"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Basket & IQ Lapangan</h4>
+                                <span class="text-xs font-mono text-slate-400">Playmaking & Shooting</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                            Memahami taktik lapangan, drible bola, disiplin latihan fisik, serta pengambilan keputusan cepat di bawah tekanan.
+                        </p>
+                        <div class="w-full bg-slate-800 rounded-full h-2">
+                            <div class="bg-brand-orange h-2 rounded-full" style="width: 85%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Skill 4 -->
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-people-group"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Kerjasama Tim</h4>
+                                <span class="text-xs font-mono text-slate-400">Team Dynamics</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                            Saling mendukung antar sesama rekan di lapangan maupun kolaborasi proyek teknologi.
+                        </p>
+                        <div class="w-full bg-slate-800 rounded-full h-2">
+                            <div class="bg-purple-400 h-2 rounded-full" style="width: 90%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Skill 5 -->
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-cubes"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Desain Interaktif</h4>
+                                <span class="text-xs font-mono text-slate-400">3D Graphics & Animation</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                            Antusiasme tinggi membuat antarmuka web masa depan dengan animasi visual 3D yang memikat.
+                        </p>
+                        <div class="w-full bg-slate-800 rounded-full h-2">
+                            <div class="bg-emerald-400 h-2 rounded-full" style="width: 70%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Skill 6 -->
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-fire"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Mentalitas Juara</h4>
+                                <span class="text-xs font-mono text-slate-400">Perseverance</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                            Pantang menyerah saat menemui bug rumit ataupun saat tertinggal poin di pertandingan akhir.
+                        </p>
+                        <div class="w-full bg-slate-800 rounded-full h-2">
+                            <div class="bg-rose-400 h-2 rounded-full" style="width: 95%"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- JOURNAL / BLOG SECTION -->
+        <section id="blog" class="py-20 px-4 sm:px-6 lg:px-8 relative">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                    <div>
+                        <h2 class="text-xs font-mono text-brand-blue uppercase tracking-widest">// STORIES & THOUGHTS</h2>
+                        <h3 class="text-3xl sm:text-5xl font-extrabold text-white">Jurnal Valdy</h3>
+                    </div>
+
+                    <!-- Category Filters -->
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="filterBlog('all')" class="blog-filter-btn active px-4 py-2 rounded-xl text-xs font-bold transition-all bg-brand-blue text-slate-950" data-category="all">Semua</button>
+                        <button onclick="filterBlog('coding')" class="blog-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:text-white" data-category="coding">Coding</button>
+                        <button onclick="filterBlog('basket')" class="blog-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:text-white" data-category="basket">Basket</button>
+                    </div>
+                </div>
+
+                <!-- Blog Cards Grid -->
+                <div id="blog-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Article 1 -->
+                    <article class="blog-card glass-card rounded-2xl overflow-hidden flex flex-col" data-category="coding">
+                        <div class="h-48 bg-slate-800 relative overflow-hidden flex items-center justify-center">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent z-10"></div>
+                            <i class="fa-solid fa-code text-6xl text-cyan-500/30 group-hover:scale-110 transition-transform duration-500"></i>
+                            <span class="absolute top-4 left-4 z-20 px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-mono font-bold uppercase">Coding</span>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col justify-between">
+                            <div>
+                                <span class="text-xs font-mono text-slate-400">26 September 2026</span>
+                                <h4 class="text-xl font-bold text-white mt-1 mb-3 hover:text-brand-blue transition-colors cursor-pointer" onclick="openBlogModal(0)">Langkah Awal Memulai Perjalanan Menjadi Programmer</h4>
+                                <p class="text-slate-300 text-sm line-clamp-3">
+                                    Alasan mengapa koding begitu menarik bagi saya dan strategi belajar logika pemrograman dasar secara konsisten setiap hari.
+                                </p>
+                            </div>
+                            <button onclick="openBlogModal(0)" class="mt-6 inline-flex items-center gap-2 text-xs font-bold text-cyan-400 hover:text-cyan-300">
+                                Baca Selengkapnya <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Article 2 -->
+                    <article class="blog-card glass-card glass-card-orange rounded-2xl overflow-hidden flex flex-col" data-category="basket">
+                        <div class="h-48 bg-slate-800 relative overflow-hidden flex items-center justify-center">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent z-10"></div>
+                            <i class="fa-solid fa-basketball text-6xl text-brand-orange/30 group-hover:scale-110 transition-transform duration-500"></i>
+                            <span class="absolute top-4 left-4 z-20 px-3 py-1 rounded-full bg-brand-orange/20 text-brand-orange border border-brand-orange/40 text-[10px] font-mono font-bold uppercase">Basketball</span>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col justify-between">
+                            <div>
+                                <span class="text-xs font-mono text-slate-400">20 September 2026</span>
+                                <h4 class="text-xl font-bold text-white mt-1 mb-3 hover:text-brand-orange transition-colors cursor-pointer" onclick="openBlogModal(1)">Misi Membawa Tim Sekolah Menuju Juara</h4>
+                                <p class="text-slate-300 text-sm line-clamp-3">
+                                    Persiapan latihan fisik, kedisiplinan jadwal, dan strategi kerjasama tim untuk meraih piala kejuaraan basket sekolah tahun ini.
+                                </p>
+                            </div>
+                            <button onclick="openBlogModal(1)" class="mt-6 inline-flex items-center gap-2 text-xs font-bold text-brand-orange hover:text-amber-400">
+                                Baca Selengkapnya <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Article 3 -->
+                    <article class="blog-card glass-card rounded-2xl overflow-hidden flex flex-col" data-category="coding">
+                        <div class="h-48 bg-slate-800 relative overflow-hidden flex items-center justify-center">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent z-10"></div>
+                            <i class="fa-solid fa-cube text-6xl text-purple-500/30 group-hover:scale-110 transition-transform duration-500"></i>
+                            <span class="absolute top-4 left-4 z-20 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[10px] font-mono font-bold uppercase">Tech & Design</span>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col justify-between">
+                            <div>
+                                <span class="text-xs font-mono text-slate-400">15 September 2026</span>
+                                <h4 class="text-xl font-bold text-white mt-1 mb-3 hover:text-brand-blue transition-colors cursor-pointer" onclick="openBlogModal(2)">Eksplorasi Web 3D dan UI/UX Masa Depan</h4>
+                                <p class="text-slate-300 text-sm line-clamp-3">
+                                    Pengalaman mengeksplorasi Three.js dan elemen interaktif 3D dalam membuat portofolio web yang memukau pengguna.
+                                </p>
+                            </div>
+                            <button onclick="openBlogModal(2)" class="mt-6 inline-flex items-center gap-2 text-xs font-bold text-purple-400 hover:text-purple-300">
+                                Baca Selengkapnya <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT & SOCIAL SECTION -->
+        <section id="contact" class="py-20 px-4 sm:px-6 lg:px-8 relative bg-slate-900/60">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-16 space-y-2">
+                    <h2 class="text-xs font-mono text-cyan-400 uppercase tracking-widest">// CONNECT WITH ME</h2>
+                    <h3 class="text-3xl sm:text-5xl font-extrabold text-white">Hubungi Valdy</h3>
+                    <p class="text-slate-400 max-w-md mx-auto text-sm sm:text-base">Ingin berkolaborasi, berdiskusi koding, atau sekadar bermain basket bersama?</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 items-start">
+                    
+                    <!-- Direct Contact Channels -->
+                    <div class="space-y-6">
+                        
+                        <!-- Email Card -->
+                        <div class="glass-card p-6 rounded-2xl flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl shrink-0">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <span class="text-xs font-mono text-slate-400 block">Email Resmi</span>
+                                    <span class="font-bold text-white text-sm sm:text-base truncate block">sadewavaldy@gmail.com</span>
+                                </div>
+                            </div>
+                            <button onclick="copyEmail()" class="px-3 py-2 rounded-lg bg-slate-800 text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 transition-colors text-xs font-bold shrink-0">
+                                <i class="fa-solid fa-copy mr-1"></i> Salin
+                            </button>
+                        </div>
+
+                        <!-- 3D Styled Instagram Badge -->
+                        <a href="https://www.instagram.com/vinutzz?stkn=MTBjN2x0Yms1dzlnNA==" target="_blank" rel="noopener noreferrer" class="glass-card p-6 rounded-2xl flex items-center justify-between gap-4 group bg-gradient-to-r from-purple-900/30 via-pink-900/20 to-orange-900/30 border-pink-500/30 hover:border-pink-500/60 transition-all">
+                            <div class="flex items-center gap-4">
+                                <!-- 3D Instagram Glass Box -->
+                                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 p-0.5 shadow-lg shadow-pink-500/30 group-hover:scale-110 transition-transform">
+                                    <div class="w-full h-full bg-slate-950/80 rounded-[14px] flex items-center justify-center text-white text-2xl">
+                                        <i class="fa-brands fa-instagram"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-mono text-pink-400 block">Instagram Official</span>
+                                    <span class="font-extrabold text-white text-lg">@vinutzz</span>
+                                </div>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-slate-800/80 text-pink-400 flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </div>
+                        </a>
+
+                        <!-- Callout box -->
+                        <div class="p-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 text-center">
+                            <p class="text-xs font-mono text-slate-400">
+                                <i class="fa-solid fa-circle-check text-emerald-400 mr-2"></i>Terbuka untuk kolaborasi proyek web & sparing basket.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Message Form -->
+                    <form onsubmit="handleFormSubmit(event)" class="glass-card p-8 rounded-2xl space-y-4">
+                        <h4 class="font-bold text-white text-lg mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-paper-plane text-brand-orange"></i> Kirim Pesan
+                        </h4>
+                        <div>
+                            <label class="block text-xs font-mono text-slate-400 mb-1">Nama Lengkap</label>
+                            <input type="text" required placeholder="Masukkan nama Anda" class="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-slate-400 mb-1">Email / Kontak</label>
+                            <input type="email" required placeholder="nama@email.com" class="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-slate-400 mb-1">Pesan / Diskusi</label>
+                            <textarea rows="4" required placeholder="Halo Valdy, saya ingin mendiskusikan..." class="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-sm resize-none"></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-orange to-amber-500 text-slate-950 font-extrabold text-sm hover:shadow-lg hover:shadow-brand-orange/30 transition-all">
+                            Kirim Pesan Sekarang
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="mt-auto border-t border-slate-800 glass-panel py-8 px-4 text-center">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-500">
+                <div>
+                    © 2026 Valdy Portfolio. Built with Three.js & Tailwind CSS.
+                </div>
+                <div class="flex items-center gap-6">
+                    <a href="https://www.instagram.com/vinutzz?stkn=MTBjN2x0Yms1dzlnNA==" target="_blank" class="hover:text-pink-400 transition-colors">Instagram</a>
+                    <a href="mailto:sadewavaldy@gmail.com" class="hover:text-cyan-400 transition-colors">Email</a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- BLOG MODAL -->
+    <div id="blog-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-card max-w-2xl w-full max-h-[85vh] overflow-y-auto rounded-2xl p-6 sm:p-8 relative border border-slate-700">
+            <button onclick="closeBlogModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div id="modal-content" class="space-y-4">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden px-5 py-3 rounded-xl bg-cyan-500 text-slate-950 font-extrabold text-xs shadow-xl shadow-cyan-500/30 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-message">Pesan terkirim!</span>
+    </div>
+
+    <!-- JAVASCRIPT & THREE.JS LOGIC -->
+    <script>
+
+        // Data for Blog Articles
+        const articles = [
+            {
+                title: "Langkah Awal Memulai Perjalanan Menjadi Programmer",
+                date: "26 September 2026",
+                category: "Coding",
+                body: "Tertarik pada dunia koding berawal dari rasa penasaran bagaimana website dan aplikasi modern dibuat. Cita-cita saya adalah menjadi programmer handal yang mampu merancang sistem perangkat lunak yang bermanfaat. Saya fokus mempelajari logika dasar, struktur data, dan pengembangan web modern secara konsisten setiap hari."
+            },
+            {
+                title: "Misi Membawa Tim Sekolah Menuju Juara Basket",
+                date: "20 September 2026",
+                category: "Basketball",
+                body: "Olahraga bola basket bukan sekadar hobi bagi saya, tetapi sarana mengasah kepemimpinan, disiplin, dan daya tahan. Impian terbesar saya di sekolah adalah dapat berkontribusi secara nyata di lapangan dan membawa tim basket sekolah memenangkan piala kejuaraan utama!"
+            },
+            {
+                title: "Eksplorasi Web 3D dan UI/UX Masa Depan",
+                date: "15 September 2026",
+                category: "Tech & Design",
+                body: "Desain UI/UX modern semakin mengedepankan pengalaman visual yang dinamis. Dengan memanfaatkan teknologi WebGL dan library seperti Three.js, kita bisa menghadirkan elemen 3D interaktif yang hidup langsung di dalam peramban web tanpa mengorbankan performa."
+            }
+        ];
+
+        // Splash Screen Loading Simulation
+        window.addEventListener('DOMContentLoaded', () => {
+            const bar = document.getElementById('loading-bar');
+            const enterBtn = document.getElementById('enter-btn');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 15;
+                if (bar) bar.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    if (enterBtn) {
+                        enterBtn.classList.remove('opacity-0', 'translate-y-4');
+                    }
+                }
+            }, 120);
+        });
+
+        function enterSite() {
+            const splash = document.getElementById('splash-screen');
+            const content = document.getElementById('app-content');
+            
+            splash.classList.add('opacity-0');
+            setTimeout(() => {
+                splash.style.display = 'none';
+                content.classList.remove('opacity-0');
+            }, 700);
+        }
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            menu.classList.toggle('hidden');
+            if (menu.classList.contains('hidden')) {
+                icon.className = 'fa-solid fa-bars text-xl';
+            } else {
+                icon.className = 'fa-solid fa-xmark text-xl';
+            }
+        }
+
+        // Blog Filter
+        function filterBlog(category) {
+            const buttons = document.querySelectorAll('.blog-filter-btn');
+            buttons.forEach(btn => {
+                if (btn.dataset.category === category) {
+                    btn.className = 'blog-filter-btn active px-4 py-2 rounded-xl text-xs font-bold transition-all bg-brand-blue text-slate-950';
+                } else {
+                    btn.className = 'blog-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:text-white';
+                }
+            });
+
+            const cards = document.querySelectorAll('.blog-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Blog Modal Logic
+        function openBlogModal(index) {
+            const modal = document.getElementById('blog-modal');
+            const modalContent = document.getElementById('modal-content');
+            const data = articles[index];
+
+            modalContent.innerHTML = `
+                <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest">${data.category} • ${data.date}</span>
+                <h3 class="text-2xl font-extrabold text-white mt-1">${data.title}</h3>
+                <div class="h-0.5 w-16 bg-gradient-to-r from-brand-blue to-brand-orange my-4"></div>
+                <p class="text-slate-300 leading-relaxed text-sm sm:text-base">${data.body}</p>
+            `;
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBlogModal() {
+            const modal = document.getElementById('blog-modal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Copy Email to Clipboard
+        function copyEmail() {
+            const email = "sadewavaldy@gmail.com";
+            const tempInput = document.createElement("input");
+            tempInput.value = email;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            showToast("Email berhasil disalin!");
+        }
+
+        // Form Submit Simulation
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            e.target.reset();
+            showToast("Pesan Anda berhasil terkirim ke Valdy!");
+        }
+
+        // Toast Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = msg;
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        /* ----------------------------------------------------
+           THREE.JS INTERACTIVE BACKGROUND SCENE
+        ---------------------------------------------------- */
+        let scene, camera, renderer;
+        let basketballGroup, codingCubeGroup, particles;
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+
+        function init3D() {
+            const canvas = document.getElementById('three-canvas');
+            scene = new THREE.Scene();
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 18;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0x00E5FF, 2, 50);
+            pointLight1.position.set(10, 10, 10);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xFF5722, 2.5, 50);
+            pointLight2.position.set(-10, -10, 10);
+            scene.add(pointLight2);
+
+            // 1. BASKETBALL 3D OBJECT
+            basketballGroup = new THREE.Group();
+            
+            // Sphere
+            const sphereGeo = new THREE.SphereGeometry(3.2, 32, 32);
+            const sphereMat = new THREE.MeshStandardMaterial({
+                color: 0xEE5522,
+                roughness: 0.4,
+                metalness: 0.1,
+                wireframe: false
+            });
+            const ballMesh = new THREE.Mesh(sphereGeo, sphereMat);
+            basketballGroup.add(ballMesh);
+
+            // Black seam lines on basketball (torus rings)
+            const lineMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+            
+            const seam1Geo = new THREE.TorusGeometry(3.22, 0.05, 16, 100);
+            const seam1 = new THREE.Mesh(seam1Geo, lineMat);
+            basketballGroup.add(seam1);
+
+            const seam2Geo = new THREE.TorusGeometry(3.22, 0.05, 16, 100);
+            const seam2 = new THREE.Mesh(seam2Geo, lineMat);
+            seam2.rotation.x = Math.PI / 2;
+            basketballGroup.add(seam2);
+
+            basketballGroup.position.set(6, 2, 0);
+            scene.add(basketballGroup);
+
+            // 2. CODING TECH GEOMETRY (Icosahedron / Tech Crystal)
+            codingCubeGroup = new THREE.Group();
+            const icoGeo = new THREE.IcosahedronGeometry(2.5, 0);
+            const icoMat = new THREE.MeshStandardMaterial({
+                color: 0x00E5FF,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.8
+            });
+            const icoMesh = new THREE.Mesh(icoGeo, icoMat);
+            codingCubeGroup.add(icoMesh);
+
+            // Core inner crystal
+            const innerGeo = new THREE.OctahedronGeometry(1.2, 0);
+            const innerMat = new THREE.MeshBasicMaterial({ color: 0xFF5722 });
+            const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+            codingCubeGroup.add(innerMesh);
+
+            codingCubeGroup.position.set(-7, -3, 0);
+            scene.add(codingCubeGroup);
+
+            // 3. BACKGROUND FLOATING PARTICLES
+            const particlesGeo = new THREE.BufferGeometry();
+            const particleCount = 200;
+            const posArray = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 40;
+            }
+
+            particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMat = new THREE.PointsMaterial({
+                size: 0.08,
+                color: 0x00E5FF,
+                transparent: true,
+                opacity: 0.6
+            });
+
+            particles = new THREE.Points(particlesGeo, particlesMat);
+            scene.add(particles);
+
+            // Mouse / Touch Interaction Listeners
+            window.addEventListener('mousemove', onPointerMove);
+            window.addEventListener('touchmove', onTouchMove, { passive: true });
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onPointerMove(e) {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
+        }
+
+        function onTouchMove(e) {
+            if (e.touches.length > 0) {
+                mouseX = (e.touches[0].clientX - window.innerWidth / 2) * 0.001;
+                mouseY = (e.touches[0].clientY - window.innerHeight / 2) * 0.001;
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Mobile view adjustments for 3D elements position
+            if (window.innerWidth < 768) {
+                basketballGroup.position.set(0, 4, -5);
+                codingCubeGroup.position.set(0, -5, -5);
+            } else {
+                basketballGroup.position.set(6, 2, 0);
+                codingCubeGroup.position.set(-7, -3, 0);
+            }
+        }
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            targetX += (mouseX - targetX) * 0.05;
+            targetY += (mouseY - targetY) * 0.05;
+
+            // Rotate Basketball
+            if (basketballGroup) {
+                basketballGroup.rotation.y += 0.008;
+                basketballGroup.rotation.x += 0.005;
+                basketballGroup.position.y += Math.sin(Date.now() * 0.002) * 0.005;
+            }
+
+            // Rotate Tech Shape
+            if (codingCubeGroup) {
+                codingCubeGroup.rotation.y -= 0.01;
+                codingCubeGroup.rotation.z += 0.005;
+            }
+
+            // Particles rotation
+            if (particles) {
+                particles.rotation.y += 0.0005;
+            }
+
+            // Interactive parallax offset based on pointer
+            scene.rotation.y = targetX * 0.5;
+            scene.rotation.x = targetY * 0.5;
+
+            renderer.render(scene, camera);
+        }
+
+        // Start 3D Engine on Window Load
+        window.onload = function() {
+            init3D();
+            onWindowResize();
+            animate();
+        };
+    </script>
+</body>
+</html>
